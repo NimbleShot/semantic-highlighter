@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Two stories, one page</title>
+  <style>
+    body { font: 17px/1.6 Georgia, serif; max-width: 720px; margin: 40px auto; padding: 0 16px; color: #222; }
+    .card { display: inline-block; border: 1px solid #ccc; padding: 4px 8px; }
+  </style>
+</head>
+<body>
+  <!-- Sentences in .bread are about baking sourdough; .mars about the Mars rover. They alternate. -->
+  <h1>Notes from a strange week</h1>
+
+  <p class="bread" id="first">A sourdough starter is a living culture of wild yeast and bacteria that makes bread rise without commercial yeast.</p>
+
+  <p class="mars">The rover landed in Jezero Crater, an ancient lake bed that scientists believe once held liquid water.</p>
+
+  <p><span class="mars">Its instruments scan rocks for chemical traces of past microbial life.</span>
+    <span class="bread">Feeding the starter with fresh flour and water every day keeps the yeast active and bubbly.</span></p>
+
+  <div class="mars">Engineers on Earth plan each drive across the Martian surface a day in advance, because radio signals take minutes to arrive.
+    <p class="bread">A long, cold fermentation in the fridge gives the dough a deeper, more sour flavour.</p>
+    The rover's helicopter companion made the first powered flight on another planet.</div>
+
+  <p>
+    <span class="bread">Shaping the loaf builds surface tension<em> so that it holds its form</em> in the oven.</span><br>
+    <span class="mars">Dust storms on Mars can cover solar panels and cut the power available for science.</span>
+  </p>
+
+  <ul>
+    <li class="bread">Bake the bread in a preheated Dutch oven so the trapped steam lets the crust expand before it hardens.</li>
+    <li class="mars">Samples of Martian soil are sealed in tubes and left on the surface for a future mission to collect.</li>
+  </ul>
+
+  <p hidden class="hidden">This hidden sentence about flour and yeast must never be indexed or highlighted.</p>
+  <p style="display:none" class="hidden">Another invisible sentence about baking bread with a starter.</p>
+
+  <p><span class="card bread">Scoring the top of the dough with a razor controls where the loaf opens.</span><span class="card mars">The orbiter relays the rover's data back to Earth.</span></p>
+
+  <pre>const yeast = "this code block is skipped";</pre>
+
+  <p class="other" dir="rtl" lang="he">מחמצת היא תרבית חיה של שמרי בר וחיידקים שמתפיחה את הלחם בלי שמרים תעשייתיים.</p>
+</body>
+</html>

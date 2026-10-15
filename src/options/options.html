@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semantic Highlighter settings</title>
+  <style>
+    :root { color-scheme: light dark; --muted: #6b7280; --accent: #d9480f; }
+    body { font: 15px/1.5 system-ui, sans-serif; max-width: 620px; margin: 32px auto; padding: 0 16px; }
+    h1 { font-size: 22px; margin-bottom: 4px; }
+    .lede { color: var(--muted); margin-top: 0; }
+    fieldset { border: 1px solid rgba(127, 127, 127, 0.35); border-radius: 8px; margin: 18px 0; padding: 12px 16px; }
+    legend { font-weight: 600; padding: 0 6px; }
+    label { display: block; margin: 8px 0; }
+    .hint { display: block; color: var(--muted); font-size: 13px; }
+    input[type=text], input[type=number], select { font: inherit; padding: 4px 6px; width: 100%; box-sizing: border-box; }
+    input[type=number] { width: 7em; }
+    .row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
+    button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(127, 127, 127, 0.5); cursor: pointer; }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    #ollama[hidden], #browser[hidden] { display: none; }
+    #result { font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Semantic Highlighter</h1>
+  <p class="lede">Turn it on for a tab with the toolbar button or <kbd>Alt+Shift+H</kbd>, then select a passage.
+    Sentences close in meaning turn warm, unrelated ones cool. <kbd>Esc</kbd> clears.</p>
+
+  <form id="form">
+    <fieldset>
+      <legend>Model</legend>
+      <label><input type="radio" name="backend" value="browser"> In the browser — nothing leaves this computer</label>
+      <label><input type="radio" name="backend" value="ollama"> An Ollama server</label>
+
+      <div id="browser">
+        <label>Model
+          <select name="model"></select>
+          <span class="hint">Downloaded once from Hugging Face, then cached.</span>
+        </label>
+      </div>
+
+      <div id="ollama">
+        <label>Server
+          <input type="text" name="ollamaUrl" placeholder="http://localhost:11434">
+          <span class="hint">The browser asks once for permission to reach it.</span>
+        </label>
+        <label>Embedding model
+          <input type="text" name="ollamaModel" placeholder="qwen3-embedding:0.6b">
+          <span class="hint">Any model with embeddings, e.g. <code>nomic-embed-text</code> or <code>qwen3-embedding:0.6b</code>.</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Behaviour</legend>
+      <label><input type="checkbox" name="autoOnSelect"> Re-color on every selection while it is on
+        <span class="hint">Off: only the right-click menu item colors the page.</span></label>
+      <label><input type="checkbox" name="showUnrelated"> Tint unrelated sentences blue
+        <span class="hint">Off: only the related half of the page is colored.</span></label>
+      <label>Ignore sentences shorter than <input type="number" name="minChars" min="1" max="200"> characters</label>
+    </fieldset>
+
+    <div class="row">
+      <button class="primary" type="submit">Save</button>
+      <button type="button" id="test">Test the model</button>
+      <span id="result" role="status"></span>
+    </div>
+  </form>
+  <script src="options.js"></script>
+</body>
+</html>

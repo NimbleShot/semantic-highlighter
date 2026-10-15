@@ -1,15 +1,18 @@
 {
   "name": "semantic-highlighter",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "Browser extension: select a passage and the page lights up as a heatmap of semantically related sentences.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "test": "node --test 'test/unit/*.test.js'",
+    "test:e2e": "node test/e2e.mjs",
+    "lint": "web-ext lint --source-dir dist/firefox",
+    "package:firefox": "web-ext build --source-dir dist/firefox --overwrite-dest"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "license": "MIT",
+  "type": "module",
   "dependencies": {
     "@huggingface/transformers": "4.3.0"
   },
@@ -17,5 +20,6 @@
     "esbuild": "0.28.2",
     "puppeteer": "25.12.0",
     "web-ext": "10.7.0"
-  }
+  },
+  "private": true
 }
