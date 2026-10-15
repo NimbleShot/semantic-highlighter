@@ -16,7 +16,7 @@
     input[type=text], input[type=number], select { font: inherit; padding: 4px 6px; width: 100%; box-sizing: border-box; }
     input[type=number] { width: 7em; }
     .row { display: flex; gap: 10px; align-items: center; margin-top: 16px; }
-    button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(127, 127, 127, 0.5); cursor: pointer; }
+    button { font: inherit; white-space: nowrap; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(127, 127, 127, 0.5); cursor: pointer; }
     button.primary { background: var(--accent); color: white; border-color: var(--accent); }
     #ollama[hidden], #browser[hidden] { display: none; }
     #result { font-size: 14px; }
@@ -43,7 +43,8 @@
       <div id="ollama">
         <label>Server
           <input type="text" name="ollamaUrl" placeholder="http://localhost:11434">
-          <span class="hint">The browser asks once for permission to reach it.</span>
+          <span class="hint">The browser asks once for permission to reach it. Ollama turns extensions away
+            unless it runs with <code>OLLAMA_ORIGINS=chrome-extension://*,moz-extension://*</code>.</span>
         </label>
         <label>Embedding model
           <input type="text" name="ollamaModel" placeholder="qwen3-embedding:0.6b">
@@ -57,7 +58,7 @@
       <label><input type="checkbox" name="autoOnSelect"> Re-color on every selection while it is on
         <span class="hint">Off: only the right-click menu item colors the page.</span></label>
       <label><input type="checkbox" name="showUnrelated"> Tint unrelated sentences blue
-        <span class="hint">Off: only the related half of the page is colored.</span></label>
+        <span class="hint">Off: only related sentences are colored.</span></label>
       <label>Ignore sentences shorter than <input type="number" name="minChars" min="1" max="200"> characters</label>
     </fieldset>
 

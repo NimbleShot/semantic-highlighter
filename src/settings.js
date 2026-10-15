@@ -13,7 +13,7 @@ export const DEFAULTS = {
   ollamaUrl: 'http://localhost:11434',
   ollamaModel: 'qwen3-embedding:0.6b',
   autoOnSelect: true, // while on, every selection re-colors the page
-  showUnrelated: true, // color the unrelated half of the page in faint blue
+  showUnrelated: true, // tint unrelated sentences in faint blue too
   minChars: 20, // shorter sentences are ignored
 };
 

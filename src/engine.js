@@ -6,8 +6,12 @@ import { pipeline, env } from '@huggingface/transformers';
 env.allowLocalModels = false;
 env.useWasmCache = false;
 // The WASM runtime ships inside the extension; extension pages may not load remote code.
-env.backends.onnx.wasm.wasmPaths = { wasm: globalThis.chrome.runtime.getURL('ort/ort-wasm-simd-threaded.wasm') };
-env.backends.onnx.wasm.numThreads = 1;
+const ort = (file) => globalThis.chrome.runtime.getURL(`ort/${file}`);
+env.backends.onnx.wasm.wasmPaths = { mjs: ort('ort-wasm-simd-threaded.mjs'), wasm: ort('ort-wasm-simd-threaded.wasm') };
+// Threads need cross-origin isolation (Chrome's offscreen document has it; Firefox's background doesn't).
+env.backends.onnx.wasm.numThreads = globalThis.crossOriginIsolated
+  ? Math.min(4, Math.max(1, Math.floor(navigator.hardwareConcurrency / 2)))
+  : 1;
 
 const extractors = new Map();
 
@@ -39,6 +43,9 @@ async function embedWithOllama(url, model, texts) {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ model, input: texts, truncate: true }),
   });
+  if (res.status === 403) {
+    throw new Error('Ollama refused the extension. Start it with OLLAMA_ORIGINS=chrome-extension://*,moz-extension://*');
+  }
   if (!res.ok) throw new Error(`Ollama answered ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const { embeddings } = await res.json();
   const dims = embeddings[0].length;

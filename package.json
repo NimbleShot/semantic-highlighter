@@ -8,7 +8,8 @@
     "test": "node --test 'test/unit/*.test.js'",
     "test:e2e": "node test/e2e.mjs",
     "lint": "web-ext lint --source-dir dist/firefox",
-    "package:firefox": "web-ext build --source-dir dist/firefox --overwrite-dest"
+    "package:firefox": "web-ext build --source-dir dist/firefox --overwrite-dest",
+    "test:e2e:firefox": "node test/e2e-firefox.mjs"
   },
   "author": "",
   "license": "MIT",

@@ -3,7 +3,11 @@
 const SKIP = new Set([
   'script', 'style', 'noscript', 'template', 'textarea', 'input', 'select', 'option', 'button',
   'svg', 'canvas', 'iframe', 'object', 'math', 'head', 'pre', 'code', 'kbd', 'samp',
+  'sup', // footnote and citation markers like [1]
+  'nav', 'footer', 'menu',
 ]);
+// Page furniture rather than content: menus, tables of contents, site headers and footers.
+const SKIP_ROLES = new Set(['navigation', 'banner', 'contentinfo', 'search', 'menu', 'menubar', 'toolbar', 'tablist']);
 const MAX_CHARS = 400; // longer runs (lists without punctuation, tables) are cut into chunks
 const MAX_SENTENCES = 5000;
 
@@ -84,7 +88,9 @@ export function collectBlocks(root, isExcluded) {
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
     acceptNode(n) {
       if (n.nodeType === Node.ELEMENT_NODE) {
-        if (SKIP.has(n.localName) || isExcluded(n)) return NodeFilter.FILTER_REJECT;
+        if (SKIP.has(n.localName) || SKIP_ROLES.has(n.getAttribute('role')) || isExcluded(n)) {
+          return NodeFilter.FILTER_REJECT;
+        }
         if (n.getAttribute('aria-hidden') === 'true' || !n.checkVisibility()) return NodeFilter.FILTER_REJECT;
         return n.localName === 'br' ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
       }

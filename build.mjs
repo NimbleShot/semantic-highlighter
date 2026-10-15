@@ -36,6 +36,9 @@ const targets = {
       permissions: [...common.permissions, 'offscreen'],
       background: { service_worker: 'background.js', type: 'module' },
       minimum_chrome_version: '116',
+      // Cross-origin isolation gives the model page SharedArrayBuffer, so it can use several threads.
+      cross_origin_embedder_policy: { value: 'require-corp' },
+      cross_origin_opener_policy: { value: 'same-origin' },
     },
     background: 'src/background/chrome.js',
     extra: [{ in: 'src/offscreen.js', out: 'offscreen' }],
@@ -59,6 +62,19 @@ const targets = {
   },
 };
 
+// Firefox's automation can't click the toolbar button or press extension shortcuts, so the
+// end-to-end test uses a build that injects itself on 127.0.0.1 and is toggled by a DOM event.
+// Never install it for real use.
+targets['firefox-test'] = {
+  ...targets.firefox,
+  manifest: {
+    ...targets.firefox.manifest,
+    name: 'Semantic Highlighter (test build)',
+    content_scripts: [{ matches: ['http://127.0.0.1/*'], js: ['content.js'], css: ['content.css'] }],
+  },
+  testHooks: true,
+};
+
 const watch = process.argv.includes('--watch');
 
 for (const [name, t] of Object.entries(targets)) {
@@ -71,9 +87,13 @@ for (const [name, t] of Object.entries(targets)) {
     outdir: out,
     target: ['chrome116', 'firefox142'],
     logLevel: 'warning',
-    // CPU-only runtime: a 14 MB WASM file instead of 27 MB with WebGPU.
+    // CPU-only runtime: a 14 MB WASM file instead of 27 MB with WebGPU. The "extern" build
+    // loads its loader from ort/, which lets it start worker threads from that file.
     alias: { 'onnxruntime-web/webgpu': 'onnxruntime-web/wasm' },
+    conditions: ['onnxruntime-web-use-extern-wasm'],
     legalComments: 'none',
+    define: { __TEST_HOOKS__: String(Boolean(t.testHooks)) },
+    minifySyntax: true, // drops the test hooks from the real builds
   };
   const builds = [
     { ...options, format: 'esm', entryPoints: [{ in: t.background, out: 'background' }, ...t.extra] },
@@ -95,7 +115,9 @@ for (const [name, t] of Object.entries(targets)) {
   await writeFile(`${out}/content.css`, highlightCss());
   await cp('src/options/options.html', `${out}/options.html`);
   await cp('static/icons', `${out}/icons`, { recursive: true });
-  await cp('node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm', `${out}/ort/ort-wasm-simd-threaded.wasm`);
+  for (const ext of ['wasm', 'mjs']) {
+    await cp(`node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.${ext}`, `${out}/ort/ort-wasm-simd-threaded.${ext}`);
+  }
   for (const [from, to] of t.copy) await cp(from, `${out}/${to}`);
   console.log(`built ${out}`);
 }

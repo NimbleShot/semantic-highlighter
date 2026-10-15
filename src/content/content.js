@@ -4,7 +4,7 @@
 
 import { api, loadSettings, modelKey } from '../settings.js';
 import { collectSentences, rangesOverlap } from './segment.js';
-import { BINS, RELATED_FROM, dot, toBins } from './score.js';
+import { BINS, COOL_BINS, RELATED_FROM, dot, toBins } from './score.js';
 import { HEAT, SOURCE, rgba } from './colors.js';
 import { HOST_ID, mountUi } from './ui.js';
 
@@ -117,7 +117,7 @@ function render() {
   lastSims = sims;
   const bins = toBins(sims);
   bins.forEach((bin, i) => {
-    if (bin === null || (bin < 2 && !settings.showUnrelated)) return;
+    if (bin === null || (bin < COOL_BINS && !settings.showUnrelated)) return;
     highlights[bin].add(sentences[i].range);
   });
   related = bins
@@ -300,6 +300,9 @@ if (!globalThis.__semhlLoaded) {
     }
     return false;
   });
+
+  // Only in the firefox-test build (see build.mjs); compiled out everywhere else.
+  if (__TEST_HOOKS__) window.addEventListener('semhl-test-toggle', () => (active ? deactivate() : activate()));
 
   api.storage.onChanged.addListener(async () => {
     if (!active) return;

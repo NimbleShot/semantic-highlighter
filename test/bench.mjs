@@ -1,8 +1,10 @@
 // Measures the highlighter on a real page: how many sentences, how long indexing takes,
 // and what the best matches for one of its sentences are.
 // `node test/bench.mjs <url> [sentence index to select, default 10]`
+// BENCH_SETTINGS='{"backend":"ollama",...}' benchmarks other settings; otherwise the defaults.
 
 import puppeteer from 'puppeteer';
+import { installExtension, setSettings } from './helpers.mjs';
 import { mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
@@ -34,7 +36,8 @@ async function until(page, predicate) {
 }
 
 try {
-  const extension = (await browser.extensions()).get(await browser.installExtension(join(root, 'dist/chrome')));
+  const extension = await installExtension(browser, join(root, 'dist/chrome'));
+  await setSettings(browser, extension, process.env.BENCH_SETTINGS ? JSON.parse(process.env.BENCH_SETTINGS) : null);
   const page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 1000 });
   await page.goto(url, { waitUntil: 'networkidle2' });
