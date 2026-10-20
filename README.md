@@ -1,8 +1,9 @@
 # Semantic Highlighter
 
-A Chrome and Firefox extension. Select a passage, and every other sentence on the page is
-tinted by how close it is in **meaning**: warm for related ideas, cool for unrelated ones. You
-can see where an article comes back to the same idea even when it uses different words.
+A Chrome and Firefox extension. Select a passage, or type an idea into its search box, and every
+sentence on the page is tinted by how close it is in **meaning**: warm for related ideas, cool
+for unrelated ones. You can see where an article comes back to the same idea even when it uses
+different words.
 
 - **Private by default.** A small embedding model ([all-MiniLM-L6-v2], 23 MB) runs inside the
   browser through [transformers.js]. Only the model is downloaded, once, from Hugging Face; page
@@ -15,14 +16,25 @@ can see where an article comes back to the same idea even when it uses different
 ## Use
 
 1. On a page, click the toolbar button or press **Alt+Shift+H**. The pill in the corner shows it
-   reading the page.
-2. Select a sentence or a passage. Related sentences turn yellow → orange → red; unrelated ones
-   stay faint blue. Your selection is purple and underlined.
+   reading the page, with the cursor in its search box.
+2. Either **type an idea and press Enter**, or **select a sentence or a passage** on the page.
+   Related sentences turn yellow → orange → red; unrelated ones stay faint blue. A selection is
+   purple and underlined, and its text lands in the search box, where it can be edited and run
+   again with Enter.
 3. The strip on the right edge marks where the related sentences are; click a mark to jump.
    **▲ ▼** in the pill step through them best match first.
 4. **Esc** clears the colors. The button, Alt+Shift+H or **✕** turn it off.
 
-Right-click a selection → *Highlight sentences related to "…"* does the same in one step.
+| Way in | What it does |
+|---|---|
+| Toolbar button, **Alt+Shift+H** | Turns it on (cursor in the search box) or off |
+| **Alt+Shift+F** | Jumps to the search box, turning it on first if needed |
+| Select text | Searches for the selection (while it is on) |
+| Right-click a selection → *Highlight sentences related to "…"* | Turns it on and searches for the selection in one step |
+
+Shortcuts can be changed at `chrome://extensions/shortcuts`, or in Firefox under
+`about:addons` → ⚙ → *Manage Extension Shortcuts*. Keys typed in the search box don't reach the
+page's own shortcuts.
 
 Options (right-click the button → Options): in-browser model or Ollama, an English or
 multilingual model (the multilingual one, 118 MB, also matches Hebrew to English), whether every
@@ -81,8 +93,8 @@ sentences: indexing 4.5 s in Chrome (7.6 ms a sentence, 4 threads), painting a s
 
 ```sh
 npm test                  # unit tests for the scoring (Node)
-npm run test:e2e          # real Chrome, headless: 10 checks on test/fixtures/article.html
-npm run test:e2e:firefox  # real Firefox over WebDriver BiDi: 6 checks
+npm run test:e2e          # real Chrome, headless: 14 checks on test/fixtures/article.html
+npm run test:e2e:firefox  # real Firefox over WebDriver BiDi: 7 checks
 npm run lint              # web-ext lint on the Firefox build
 node test/bench.mjs https://en.wikipedia.org/wiki/Sourdough 60   # speed and matches on a real page
 ```

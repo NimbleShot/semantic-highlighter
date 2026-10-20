@@ -22,8 +22,19 @@ export async function serveFixtures(root) {
   return { server, base: `http://127.0.0.1:${server.address().port}` };
 }
 
-// Installs the unpacked extension in Chrome and waits until Chrome lists it.
+const isWorkerOf = (id) => (t) => t.type() === 'service_worker' && t.url().startsWith(`chrome-extension://${id}/`);
+
+// The extension's background service worker, as Puppeteer can evaluate in it. Chrome only.
+export async function backgroundWorker(browser, extension) {
+  return (await browser.waitForTarget(isWorkerOf(extension.id))).worker();
+}
+
+// Installs the unpacked extension in Chrome, fresh, and waits until Chrome lists it. The test
+// profile is reused between runs, and installing over an earlier install of the same folder keeps
+// running the old service worker, so any earlier install is removed first. That also clears the
+// cached model: each run downloads it again.
 export async function installExtension(browser, dir) {
+  await browser.uninstallExtension(await browser.installExtension(dir));
   const id = await browser.installExtension(dir);
   for (let tries = 0; tries < 50; tries++) {
     const extension = (await browser.extensions()).get(id);
@@ -35,10 +46,7 @@ export async function installExtension(browser, dir) {
 
 // Resets the extension's settings (or sets some) through its service worker. Chrome only.
 export async function setSettings(browser, extension, values) {
-  const target = await browser.waitForTarget(
-    (t) => t.type() === 'service_worker' && t.url().startsWith(`chrome-extension://${extension.id}/`),
-  );
-  const worker = await target.worker();
+  const worker = await backgroundWorker(browser, extension);
   await worker.evaluate((v) => (v ? chrome.storage.local.set(v) : chrome.storage.local.clear()), values);
 }
 
@@ -69,7 +77,21 @@ export async function selectFirstSentence(page) {
     getSelection().selectAllChildren(document.getElementById('first'));
     document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
   });
-  return waitFor(page, 'painting', (s) => s.query && s.allSims.length > 0, 60_000);
+  return waitFor(page, 'painting', (s) => s.query?.startsWith('A sourdough starter') && s.allSims.length > 0, 60_000);
+}
+
+// Whether the keyboard focus is in the pill's search box.
+export const boxFocused = (page) =>
+  page.evaluate(() => {
+    const host = document.getElementById('semhl-host');
+    return document.activeElement === host && host.shadowRoot.activeElement?.className === 'query';
+  });
+
+// Types into the focused search box, presses Enter, and waits for the paint.
+export async function typeQuery(page, text) {
+  await page.keyboard.type(text);
+  await page.keyboard.press('Enter');
+  return waitFor(page, 'painting the typed query', (s) => s.query === text && s.allSims.length > 0, 60_000);
 }
 
 // Which fixture topic each sentence belongs to: bread, mars, hidden, or other.

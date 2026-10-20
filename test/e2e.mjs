@@ -3,7 +3,7 @@
 //
 //   npm run build && npm run test:e2e
 //
-// The first run downloads the English model (23 MB) into test/artifacts/chrome-profile.
+// Each run installs the extension fresh, so it downloads the English model (23 MB) again.
 // Opt-in extras:
 //   OLLAMA_TEST_URL=http://127.0.0.1:11434  the same ranking through an Ollama server
 //                                            (started with OLLAMA_ORIGINS=chrome-extension://*)
@@ -14,7 +14,8 @@ import { mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
 import {
-  checker, describeRanking, indexed, installExtension, selectFirstSentence, serveFixtures, setSettings, topicsOf, waitFor,
+  backgroundWorker, boxFocused, checker, describeRanking, indexed, installExtension, selectFirstSentence, serveFixtures, setSettings,
+  topicsOf, typeQuery, waitFor,
 } from './helpers.mjs';
 
 const root = resolve(import.meta.dirname, '..');
@@ -28,7 +29,7 @@ const browser = await puppeteer.launch({
   headless: true,
   pipe: true,
   enableExtensions: true, // branded Chrome ignores --load-extension; installExtension below
-  userDataDir: join(artifacts, 'chrome-profile'), // keeps the model cache between runs
+  userDataDir: join(artifacts, 'chrome-profile'),
   args: ['--no-first-run', '--window-size=1280,1600'],
 });
 let extension;
@@ -50,6 +51,10 @@ try {
     const started = Date.now();
     index = await turnOnAndIndex(page);
     console.log(`     ${index.sentences.length} sentences in ${((Date.now() - started) / 1000).toFixed(1)} s`);
+  });
+
+  await check('the toolbar action leaves the cursor in the search box', async () => {
+    assert.equal(await boxFocused(page), true);
   });
 
   await check('hidden text, code blocks and short lines are left out', async () => {
@@ -105,6 +110,43 @@ try {
     assert.equal(s.active, true);
     const sizes = await page.evaluate(() => [...CSS.highlights.values()].reduce((n, h) => n + h.size, 0));
     assert.equal(sizes, 0);
+  });
+
+  await check('the search hotkey focuses the box, and a typed idea paints the page', async () => {
+    await page.evaluate(() => document.getElementById('semhl-host').shadowRoot.activeElement?.blur());
+    assert.equal(await boxFocused(page), false);
+    // Puppeteer's key events go to the page, not to the browser's shortcut handling, so the
+    // command is run through the same handler the shortcut calls.
+    const worker = await backgroundWorker(browser, extension);
+    await worker.evaluate(async (url) => {
+      const [tab] = await chrome.tabs.query({ url });
+      await globalThis.semhlCommand('search-by-meaning', tab.id);
+    }, `${base}/article.html`);
+    await page.waitForFunction(() => document.getElementById('semhl-host').shadowRoot.activeElement, { timeout: 5_000 });
+    assert.equal(await boxFocused(page), true);
+
+    const keysBefore = await page.evaluate(() => window.pageKeys);
+    const typed = await typeQuery(page, 'kneading and baking a loaf');
+    console.log(`     ranking: ${await describeRanking(page, typed)}`);
+    const topics = await topicsOf(page, typed.related);
+    assert.deepEqual(topics.slice(0, 3), ['bread', 'bread', 'bread']);
+    assert.ok(!topics.includes('mars'), 'a Mars sentence counted as related');
+    const result = await page.evaluate(() => ({
+      source: CSS.highlights.get('semhl-source').size,
+      ticks: document.getElementById('semhl-host').shadowRoot.querySelectorAll('.tick').length,
+      keys: window.pageKeys,
+    }));
+    assert.equal(result.source, 0, 'a typed query has no place on the page to mark');
+    assert.equal(result.ticks, typed.related.length);
+    assert.equal(result.keys, keysBefore, 'keys typed in the box reached the page');
+    await page.screenshot({ path: join(artifacts, 'chrome-typed-query.png') });
+  });
+
+  await check('a selection shows up in the box, ready to edit', async () => {
+    await page.evaluate(() => document.getElementById('semhl-host').shadowRoot.activeElement?.blur());
+    await selectFirstSentence(page);
+    const value = await page.evaluate(() => document.getElementById('semhl-host').shadowRoot.querySelector('.query').value);
+    assert.match(value, /^A sourdough starter is a living culture/);
   });
 
   await check('the toolbar action turns it off again', async () => {

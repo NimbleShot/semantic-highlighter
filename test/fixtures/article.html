@@ -40,6 +40,10 @@
 
   <pre>const yeast = "this code block is skipped";</pre>
 
+  <!-- Counts key presses the page itself sees; typing in the search box must not add to it.
+       (Blocked under the strict CSP, where the test doesn't read it.) -->
+  <script>window.pageKeys = 0; document.addEventListener('keydown', () => window.pageKeys++);</script>
+
   <p class="other" dir="rtl" lang="he">מחמצת היא תרבית חיה של שמרי בר וחיידקים שמתפיחה את הלחם בלי שמרים תעשייתיים.</p>
 </body>
 </html>

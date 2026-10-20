@@ -40,6 +40,13 @@ export function setup(embedTexts) {
 
   api.action.onClicked.addListener((tab) => sendToTab(tab.id, { type: 'toggle' }));
 
+  const onCommand = async (command, tab) => {
+    if (command !== 'search-by-meaning') return;
+    tab ??= (await api.tabs.query({ active: true, currentWindow: true }))[0];
+    if (tab) sendToTab(tab.id, { type: 'focus-box' });
+  };
+  api.commands.onCommand.addListener(onCommand);
+
   api.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId === MENU_ID) sendToTab(tab.id, { type: 'highlight-selection' });
   });
@@ -67,5 +74,5 @@ export function setup(embedTexts) {
   });
 
   // Lets the end-to-end test drive the extension without a toolbar to click.
-  globalThis.semhlToggle = (tabId) => sendToTab(tabId, { type: 'toggle' });
+  globalThis.semhlCommand = (command, tabId) => onCommand(command, { id: tabId });
 }

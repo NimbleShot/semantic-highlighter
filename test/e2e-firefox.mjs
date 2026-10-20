@@ -11,7 +11,9 @@ import puppeteer from 'puppeteer';
 import { mkdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 import assert from 'node:assert/strict';
-import { checker, describeRanking, indexed, selectFirstSentence, serveFixtures, topicsOf, waitFor } from './helpers.mjs';
+import {
+  boxFocused, checker, describeRanking, indexed, selectFirstSentence, serveFixtures, topicsOf, typeQuery, waitFor,
+} from './helpers.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const artifacts = join(root, 'test/artifacts');
@@ -81,6 +83,21 @@ try {
   });
 
   await page.screenshot({ path: join(artifacts, 'firefox-painted.png') });
+
+  await check('the search box takes a typed idea, and the page never sees the keys', async () => {
+    await page.evaluate(() => document.getElementById('semhl-host').shadowRoot.activeElement?.blur());
+    await page.evaluate(() => window.dispatchEvent(new Event('semhl-test-focus-box')));
+    await page.waitForFunction(() => document.getElementById('semhl-host').shadowRoot.activeElement, { timeout: 5_000 });
+    assert.equal(await boxFocused(page), true);
+    const keysBefore = await page.evaluate(() => window.pageKeys);
+    const typed = await typeQuery(page, 'kneading and baking a loaf');
+    console.log(`     ranking: ${await describeRanking(page, typed)}`);
+    const topics = await topicsOf(page, typed.related);
+    assert.deepEqual(topics.slice(0, 3), ['bread', 'bread', 'bread']);
+    assert.ok(!topics.includes('mars'));
+    assert.equal(await page.evaluate(() => window.pageKeys), keysBefore, 'keys typed in the box reached the page');
+    await page.screenshot({ path: join(artifacts, 'firefox-typed-query.png') });
+  });
 
   await check('it turns off again', async () => {
     await toggle(page);

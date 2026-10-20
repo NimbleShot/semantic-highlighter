@@ -107,7 +107,7 @@ function render() {
   clearPaint();
   if (!query?.vec) return updateStatus();
   const sims = sentences.map((s) => {
-    if (rangesOverlap(s.range, query.range)) {
+    if (query.range && rangesOverlap(s.range, query.range)) {
       sourceHl.add(s.range);
       return null;
     }
@@ -142,8 +142,8 @@ function drawMinimap(bins, sims) {
       ticks.push({ fraction: f, color: rgba(HEAT[bins[i]], 1), index: i, title: `${sims[i].toFixed(2)} · ${sentences[i].text}` });
     }
   });
-  const f = fraction(query.range);
-  if (f !== null) ticks.push({ fraction: f, color: rgba(SOURCE, 1), title: 'Your selection' });
+  const f = query.range && fraction(query.range);
+  if (f !== null && f !== undefined) ticks.push({ fraction: f, color: rgba(SOURCE, 1), title: 'Your selection' });
   ui.setTicks(ticks);
 }
 
@@ -170,9 +170,9 @@ function updateStatus() {
   let nav = false;
   if (error) text = `⚠ ${error}`;
   else if (modelPercent !== null) text = `Downloading the model… ${modelPercent}%`;
-  else if (query && !query.vec) text = 'Reading your selection…';
+  else if (query && !query.vec) text = 'Reading your query…';
   else if (indexing && !query) text = `Reading the page… ${progress.done}/${progress.total}`;
-  else if (!query) text = 'Select a passage';
+  else if (!query) text = '';
   else {
     const reading = indexing ? ` · reading ${progress.done}/${progress.total}` : '';
     nav = related.length > 0;
@@ -203,16 +203,24 @@ function selectionInsideUs(sel) {
   return !el || el.closest(`#${HOST_ID}`) || el.closest('input, textarea, [contenteditable=""], [contenteditable="true"]');
 }
 
-async function highlightSelection() {
+function highlightSelection() {
   const sel = getSelection();
   if (!sel.rangeCount || sel.isCollapsed || selectionInsideUs(sel)) return;
-  const text = sel.toString().replace(/\s+/g, ' ').trim();
-  if (text.length < 3 || text === query?.text) return;
-  query = { text, range: sel.getRangeAt(0).cloneRange(), vec: null };
+  return runQuery(sel.toString(), sel.getRangeAt(0).cloneRange());
+}
+
+// `range` is where the query sits on the page (a selection), or null for a typed query.
+async function runQuery(raw, range) {
+  const text = raw.replace(/\s+/g, ' ').trim();
+  if (text.length < 2 || (text === query?.text && !range === !query.range)) return;
+  query = { text, range, vec: null };
+  clearPaint();
+  lastSims = [];
+  ui?.setQuery(text);
   updateStatus();
   try {
     const [vec] = await embed([text]);
-    if (query?.text !== text) return; // a newer selection took over
+    if (query?.text !== text) return; // a newer query took over
     query.vec = vec;
     error = null;
     if (reindexWanted) index();
@@ -234,6 +242,7 @@ function onKeyDown(e) {
   if (active && e.key === 'Escape' && query) {
     query = null;
     clearPaint();
+    ui.setQuery('');
     updateStatus();
   }
 }
@@ -246,12 +255,17 @@ function onMutations() {
   mutationTimer = setTimeout(index, 1500);
 }
 
-async function activate() {
-  if (active) return;
+// `focusBox` puts the cursor in the search box: the toolbar button and the search hotkey do.
+async function activate({ focusBox = false } = {}) {
+  if (active) {
+    if (focusBox) ui.focusQuery();
+    return;
+  }
   settings = await loadSettings();
   active = true;
   NAMES.forEach((name, i) => CSS.highlights.set(name, highlights[i]));
   ui = mountUi({
+    onQuery: (text) => runQuery(text, null),
     onPrev: () => step(-1),
     onNext: () => step(1),
     onClose: deactivate,
@@ -268,7 +282,9 @@ async function activate() {
   document.addEventListener('keydown', onKeyDown, true);
   api.runtime.sendMessage({ type: 'state', active: true });
   index();
+  // Read a selection already on the page before focusing the box can disturb it.
   if (settings.autoOnSelect) highlightSelection();
+  if (focusBox) ui.focusQuery();
 }
 
 function deactivate() {
@@ -292,7 +308,8 @@ if (!globalThis.__semhlLoaded) {
 
   api.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === 'ping') sendResponse({ ok: true });
-    else if (msg.type === 'toggle') (active ? deactivate() : activate());
+    else if (msg.type === 'toggle') (active ? deactivate() : activate({ focusBox: true }));
+    else if (msg.type === 'focus-box') activate({ focusBox: true });
     else if (msg.type === 'highlight-selection') activate().then(highlightSelection);
     else if (msg.type === 'model-progress') {
       modelPercent = msg.percent < 100 ? msg.percent : null;
@@ -302,7 +319,10 @@ if (!globalThis.__semhlLoaded) {
   });
 
   // Only in the firefox-test build (see build.mjs); compiled out everywhere else.
-  if (__TEST_HOOKS__) window.addEventListener('semhl-test-toggle', () => (active ? deactivate() : activate()));
+  if (__TEST_HOOKS__) {
+    window.addEventListener('semhl-test-toggle', () => (active ? deactivate() : activate({ focusBox: true })));
+    window.addEventListener('semhl-test-focus-box', () => activate({ focusBox: true }));
+  }
 
   api.storage.onChanged.addListener(async () => {
     if (!active) return;

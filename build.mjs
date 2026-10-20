@@ -10,11 +10,11 @@ const common = {
   manifest_version: 3,
   name: 'Semantic Highlighter',
   version: pkg.version,
-  description: 'Select a passage and every other sentence on the page is colored by how close it is in meaning.',
+  description: 'Select a passage or type an idea, and every sentence on the page is colored by how close it is in meaning.',
   permissions: ['activeTab', 'scripting', 'contextMenus', 'storage'],
   optional_host_permissions: ['http://*/*', 'https://*/*'],
   action: {
-    default_title: 'Semantic highlighter (Alt+Shift+H)',
+    default_title: 'Semantic highlighter: on/off (Alt+Shift+H) · search box (Alt+Shift+F)',
     default_icon: { 16: 'icons/16.png', 32: 'icons/32.png' },
   },
   icons: { 16: 'icons/16.png', 32: 'icons/32.png', 48: 'icons/48.png', 128: 'icons/128.png' },
@@ -22,6 +22,10 @@ const common = {
     _execute_action: {
       suggested_key: { default: 'Alt+Shift+H' },
       description: 'Turn the highlighter on or off for this tab',
+    },
+    'search-by-meaning': {
+      suggested_key: { default: 'Alt+Shift+F' },
+      description: 'Search this page by meaning (opens the search box)',
     },
   },
   options_ui: { page: 'options.html', open_in_tab: true },
