@@ -50,7 +50,7 @@ const targets = {
       background: { scripts: ['background.js'], type: 'module' },
       browser_specific_settings: {
         gecko: {
-          id: 'semantic-highlighter@almog.local',
+          id: 'semantic-highlighter@nimbleshot',
           strict_min_version: '142.0',
           data_collection_permissions: { required: ['none'] },
         },

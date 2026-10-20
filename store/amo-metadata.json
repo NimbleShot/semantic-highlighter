@@ -1,0 +1,16 @@
+{
+  "name": { "en-US": "Semantic Highlighter" },
+  "summary": {
+    "en-US": "Select a passage and every other sentence on the page is colored by how close it is in meaning. The model runs in your browser; page text never leaves your computer."
+  },
+  "description": {
+    "en-US": "Select a sentence or a passage, and the rest of the page lights up as a heatmap: related ideas turn yellow, orange and red, unrelated ones stay faint blue. You can see where an article comes back to the same idea even when it uses different words.\n\nHow to use it:\n• Click the toolbar button or press Alt+Shift+H on a page.\n• Select text. Related sentences are colored at once.\n• The strip on the right edge marks where the matches are; click a mark to jump. ▲ ▼ step through them, best match first.\n• Esc clears the colors; the button or ✕ turns it off.\n• Or right-click a selection → \"Highlight sentences related to…\".\n\nPrivate: a small embedding model (all-MiniLM-L6-v2, 23 MB) runs inside the browser. It is downloaded once from Hugging Face; page text is never sent anywhere. A multilingual model (118 MB, matches Hebrew to English and 50+ other languages) and a local Ollama server are options.\n\nLeaves the page alone: colors are painted with the CSS Custom Highlight API, so the page itself is never modified.\n\nRuns only where you turn it on: nothing is injected until you click the button on a tab.\n\nOpen source (MIT): https://github.com/NimbleShot/semantic-highlighter"
+  },
+  "categories": ["search-tools"],
+  "homepage": { "en-US": "https://github.com/NimbleShot/semantic-highlighter" },
+  "support_url": { "en-US": "https://github.com/NimbleShot/semantic-highlighter/issues" },
+  "version": {
+    "license": "MIT",
+    "approval_notes": "Build from the attached source: Node 20+, then `npm ci && npm run build`; the add-on is dist/firefox. (PUPPETEER_SKIP_DOWNLOAD=1 skips a browser download used only by the tests.) The bundle is made by esbuild from src/ plus @huggingface/transformers 4.3.0 from npm.\n\nThe linter's UNSAFE_VAR_ASSIGNMENT warning on a dynamic import() in background.js is inside onnxruntime-web (bundled by transformers.js). The URL it imports is set in src/engine.js to the packaged file ort/ort-wasm-simd-threaded.mjs via runtime.getURL; no remote code is loaded.\n\nNetwork: the background page downloads the model weights (ONNX + tokenizer JSON, data only) from huggingface.co on first use. If the user picks Ollama in the options, sentences are sent to the server URL they enter, after an optional host permission prompt.\n\nTo test: open any article (e.g. a Wikipedia page), click the toolbar button, wait for the pill to say it is ready, then select a sentence."
+  }
+}

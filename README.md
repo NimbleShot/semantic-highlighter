@@ -98,6 +98,20 @@ The tests use the installed Google Chrome (`CHROME=` to override) and Firefox (`
 default the snap's `/snap/bin/firefox`); Puppeteer does not download browsers here
 (`PUPPETEER_SKIP_DOWNLOAD=1 npm ci`).
 
+## Privacy
+
+Semantic Highlighter collects no data. It has no analytics, no accounts and no server of its own.
+
+- **Page text stays on your computer.** Sentences are read only on a tab where you turn the
+  extension on, embedded by the model inside the browser, and kept in memory for that tab until
+  you turn it off or close the tab. Nothing is written to disk or sent anywhere.
+- **The model is downloaded once** from Hugging Face (`huggingface.co`) and kept in the
+  browser's cache. That download is the only request the extension makes on its own; it carries
+  no page text.
+- **Ollama, if you choose it,** receives the page's sentences at the address you enter in the
+  options, normally a server on your own computer. The browser asks your permission first.
+- **Settings** are stored in the browser's extension storage on your computer.
+
 ## Known limits
 
 - Text inside iframes, shadow DOM and canvas-rendered pages (Google Docs) is not read.
