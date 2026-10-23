@@ -1,12 +1,12 @@
 # Chrome Web Store listing
 
-Upload `web-ext-artifacts/semantic-highlighter-0.1.0-chrome.zip` (a zip of `dist/chrome`).
+Upload `web-ext-artifacts/semantic-highlighter-<version>-chrome.zip`, made by `npm run build && npm run package`.
 
 ## Store listing
 
 - **Category:** Tools
 - **Language:** English
-- **Screenshot:** `store/screenshots/sourdough.png` (1280×800)
+- **Screenshots** (1280×800): `store/screenshots/search-box.png` (the search box, from `node tools/store-screenshot.mjs`), `store/screenshots/sourdough.png` (a selection)
 - **Homepage:** https://github.com/NimbleShot/semantic-highlighter
 - **Support:** https://github.com/NimbleShot/semantic-highlighter/issues
 

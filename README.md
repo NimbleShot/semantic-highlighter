@@ -73,10 +73,37 @@ the override in `package.json`.)
   `dist/firefox/manifest.json`. A temporary add-on is removed when Firefox restarts. To keep it,
   either sign it through addons.mozilla.org (`web-ext sign`, self-distributed, needs an AMO API
   key) or use Developer Edition / Nightly with `xpinstall.signatures.required` set to `false` and
-  install the zip from `npm run package:firefox`.
+  install `web-ext-artifacts/semantic-highlighter-<version>-firefox.zip` from `npm run package`.
 
 `dist/firefox-test` is a build for the automated test only (it injects itself on 127.0.0.1).
 Never install it.
+
+## Releasing
+
+1. Raise `version` in `package.json` (`npm version <x.y.z> --no-git-tag-version`); the stores
+   refuse a version they have already seen. Update `release_notes` and `approval_notes` in
+   `store/amo-metadata.json`.
+2. Commit, then `npm ci && npm run build && npm run package`. That writes
+   `web-ext-artifacts/semantic-highlighter-<version>-{firefox,chrome,source}.zip`; the source zip
+   is the last commit, so commit first.
+3. **Firefox** (listed on AMO as `semantic-highlighter@nimbleshot`), with an API key from
+   <https://addons.mozilla.org/developers/addon/api/key/>:
+
+   ```sh
+   npx web-ext sign --channel=listed --source-dir dist/firefox \
+     --amo-metadata store/amo-metadata.json \
+     --upload-source-code web-ext-artifacts/semantic-highlighter-<version>-source.zip \
+     --api-key <issuer> --api-secret <secret>
+   ```
+
+   For an existing add-on this submits the new version with its release and reviewer notes,
+   updates the listing's summary and description from the same file, and attaches the source.
+   The version then waits for review; the command times out waiting for approval, which is
+   normal. Screenshots are uploaded by hand on the listing page. Without an API key: Developer
+   Hub → the add-on → *Upload New Version*, the `-firefox.zip`, then the `-source.zip` and the
+   notes from `store/amo-metadata.json`.
+4. **Chrome:** see `store/chrome-listing.md`.
+5. Tag it: `git tag v<version> && git push --tags`.
 
 ### Using Ollama
 
