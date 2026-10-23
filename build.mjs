@@ -14,18 +14,22 @@ const common = {
   permissions: ['activeTab', 'scripting', 'contextMenus', 'storage'],
   optional_host_permissions: ['http://*/*', 'https://*/*'],
   action: {
-    default_title: 'Semantic highlighter: on/off (Alt+Shift+H) · search box (Alt+Shift+F)',
+    default_title: 'Semantic highlighter: on/off', // the background adds the real shortcut
     default_icon: { 16: 'icons/16.png', 32: 'icons/32.png' },
   },
   icons: { 16: 'icons/16.png', 32: 'icons/32.png', 48: 'icons/48.png', 128: 'icons/128.png' },
+  // No Alt shortcuts: in Firefox on Windows and Linux Alt+letter opens the menu bar (Alt+H Help,
+  // Alt+F File), and in Chrome Alt+F opens its menu. Ctrl+Shift+F is free in both Chrome and
+  // Firefox (checked against Firefox 157's own key table and Chrome's shortcut list); on a Mac,
+  // Cmd+Shift+F is taken, so it is Control+Shift+F there. The toolbar button gets no default key,
+  // so it can't collide with anything; users can assign one.
   commands: {
     _execute_action: {
-      suggested_key: { default: 'Alt+Shift+H' },
       description: 'Turn the highlighter on or off for this tab',
     },
     'search-by-meaning': {
-      suggested_key: { default: 'Alt+Shift+F' },
-      description: 'Search this page by meaning (opens the search box)',
+      suggested_key: { default: 'Ctrl+Shift+F', mac: 'MacCtrl+Shift+F' },
+      description: 'Search this page by meaning: opens the search box; again in the box turns it off',
     },
   },
   options_ui: { page: 'options.html', open_in_tab: true },

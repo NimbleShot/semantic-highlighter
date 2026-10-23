@@ -275,6 +275,7 @@ async function activate({ focusBox = false } = {}) {
       updateStatus();
     },
   });
+  api.runtime.sendMessage({ type: 'shortcuts' }).then((keys) => ui?.setShortcuts(keys ?? {}), () => {});
   observer = new MutationObserver(onMutations);
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   document.addEventListener('mouseup', onPointerOrKeyUp, true);
@@ -285,6 +286,13 @@ async function activate({ focusBox = false } = {}) {
   // Read a selection already on the page before focusing the box can disturb it.
   if (settings.autoOnSelect) highlightSelection();
   if (focusBox) ui.focusQuery();
+}
+
+// The search shortcut: opens the box (turning the highlighter on if needed); pressed again while
+// in the box, turns it off, so one key does both.
+function searchShortcut() {
+  if (active && ui.queryFocused()) deactivate();
+  else activate({ focusBox: true });
 }
 
 function deactivate() {
@@ -309,7 +317,7 @@ if (!globalThis.__semhlLoaded) {
   api.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (msg.type === 'ping') sendResponse({ ok: true });
     else if (msg.type === 'toggle') (active ? deactivate() : activate({ focusBox: true }));
-    else if (msg.type === 'focus-box') activate({ focusBox: true });
+    else if (msg.type === 'focus-box') searchShortcut();
     else if (msg.type === 'highlight-selection') activate().then(highlightSelection);
     else if (msg.type === 'model-progress') {
       modelPercent = msg.percent < 100 ? msg.percent : null;
@@ -321,7 +329,7 @@ if (!globalThis.__semhlLoaded) {
   // Only in the firefox-test build (see build.mjs); compiled out everywhere else.
   if (__TEST_HOOKS__) {
     window.addEventListener('semhl-test-toggle', () => (active ? deactivate() : activate({ focusBox: true })));
-    window.addEventListener('semhl-test-focus-box', () => activate({ focusBox: true }));
+    window.addEventListener('semhl-test-focus-box', searchShortcut);
   }
 
   api.storage.onChanged.addListener(async () => {

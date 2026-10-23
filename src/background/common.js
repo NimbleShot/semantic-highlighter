@@ -24,6 +24,18 @@ async function sendToTab(tabId, message) {
   }
 }
 
+// The keys actually bound to each command; users can change them, so nothing hard-codes them.
+async function shortcuts() {
+  const commands = await api.commands.getAll();
+  return Object.fromEntries(commands.map((c) => [c.name, c.shortcut || '']));
+}
+
+async function updateActionTitle() {
+  const keys = await shortcuts();
+  const search = keys['search-by-meaning'];
+  api.action.setTitle({ title: `Semantic highlighter: on/off${search ? ` · search box ${search}` : ''}` });
+}
+
 function setBadge(tabId, active) {
   api.action.setBadgeText({ tabId, text: active ? 'ON' : '' });
   api.action.setBadgeBackgroundColor({ tabId, color: '#d9480f' });
@@ -37,6 +49,7 @@ export function setup(embedTexts) {
       contexts: ['selection'],
     });
   });
+  updateActionTitle();
 
   api.action.onClicked.addListener((tab) => sendToTab(tab.id, { type: 'toggle' }));
 
@@ -56,6 +69,11 @@ export function setup(embedTexts) {
     if (msg.type === 'state' && sender.tab) {
       setBadge(sender.tab.id, msg.active);
       return false;
+    }
+    if (msg.type === 'shortcuts') {
+      shortcuts().then(sendResponse, () => sendResponse({}));
+      updateActionTitle(); // the user may have rebound a key since the last time
+      return true;
     }
     if (msg.type === 'embed') {
       const tabId = sender.tab?.id;

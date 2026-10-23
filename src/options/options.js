@@ -63,6 +63,12 @@ document.getElementById('test').addEventListener('click', async () => {
   result.textContent = `Works: ${res.dims} dimensions, similarity of two paraphrases ${sim.toFixed(2)}, ${ms} ms.`;
 });
 
+// Show the key the browser actually has bound; the user may have changed it.
+api.commands.getAll().then((commands) => {
+  const key = commands.find((c) => c.name === 'search-by-meaning')?.shortcut;
+  document.getElementById('search-key').textContent = key || 'the search shortcut (not set)';
+});
+
 loadSettings().then((s) => {
   form.backend.value = s.backend;
   form.model.value = s.model;

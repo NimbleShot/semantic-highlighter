@@ -48,7 +48,7 @@ export function mountUi({ onQuery, onPrev, onNext, onClose, onTick }) {
   const input = el('input', 'query', {
     type: 'search',
     placeholder: 'Search by meaning, or select text',
-    title: 'Type an idea and press Enter (Alt+Shift+F)',
+    title: 'Type an idea and press Enter',
     spellcheck: false,
     autocomplete: 'off',
   });
@@ -59,7 +59,7 @@ export function mountUi({ onQuery, onPrev, onNext, onClose, onTick }) {
     el('span', 'status', { role: 'status' }),
     el('button', 'prev', { title: 'Previous related sentence', textContent: '▲', hidden: true }),
     el('button', 'next', { title: 'Next related sentence', textContent: '▼', hidden: true }),
-    el('button', 'close', { title: 'Turn off (Alt+Shift+H)', textContent: '✕' }),
+    el('button', 'close', { title: 'Turn off', textContent: '✕' }),
   );
   root.append(el('div', 'strip'), pill);
   try {
@@ -95,6 +95,16 @@ export function mountUi({ onQuery, onPrev, onNext, onClose, onTick }) {
     focusQuery() {
       input.focus();
       input.select();
+    },
+    queryFocused() {
+      return root.activeElement === input;
+    },
+    // keys: { 'search-by-meaning': 'Ctrl+Shift+F', ... } as the browser has them bound.
+    setShortcuts(keys) {
+      const search = keys['search-by-meaning'];
+      if (!search) return;
+      input.title = `Type an idea and press Enter. ${search} jumps here from anywhere on the page.`;
+      $('.close').title = `Turn off (or ${search} while in the search box)`;
     },
     // Shows what is being searched for, e.g. after a selection, so it can be edited.
     setQuery(text) {

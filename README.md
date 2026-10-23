@@ -15,26 +15,34 @@ different words.
 
 ## Use
 
-1. On a page, click the toolbar button or press **Alt+Shift+H**. The pill in the corner shows it
-   reading the page, with the cursor in its search box.
+1. On a page, press **Ctrl+Shift+F** (Control+Shift+F on a Mac) or click the toolbar button. The
+   pill in the corner shows it reading the page, with the cursor in its search box.
 2. Either **type an idea and press Enter**, or **select a sentence or a passage** on the page.
    Related sentences turn yellow → orange → red; unrelated ones stay faint blue. A selection is
    purple and underlined, and its text lands in the search box, where it can be edited and run
    again with Enter.
 3. The strip on the right edge marks where the related sentences are; click a mark to jump.
    **▲ ▼** in the pill step through them best match first.
-4. **Esc** clears the colors. The button, Alt+Shift+H or **✕** turn it off.
+4. **Esc** clears the colors. The button, **✕**, or Ctrl+Shift+F pressed in the search box turn
+   it off.
 
 | Way in | What it does |
 |---|---|
-| Toolbar button, **Alt+Shift+H** | Turns it on (cursor in the search box) or off |
-| **Alt+Shift+F** | Jumps to the search box, turning it on first if needed |
+| **Ctrl+Shift+F** (Mac: Control+Shift+F) | Jumps to the search box, turning it on first if needed; pressed in the box, turns it off |
+| Toolbar button | Turns it on (cursor in the search box) or off. No default key; you can assign one |
 | Select text | Searches for the selection (while it is on) |
 | Right-click a selection → *Highlight sentences related to "…"* | Turns it on and searches for the selection in one step |
 
 Shortcuts can be changed at `chrome://extensions/shortcuts`, or in Firefox under
-`about:addons` → ⚙ → *Manage Extension Shortcuts*. Keys typed in the search box don't reach the
-page's own shortcuts.
+`about:addons` → ⚙ → *Manage Extension Shortcuts*; the tooltips and the options page show
+whatever is bound. Keys typed in the search box don't reach the page's own shortcuts.
+
+**Why not Alt:** in Firefox on Windows and Linux, Alt+letter opens the menu bar (Alt+H is Help,
+Alt+F is File), and in Chrome Alt+F opens its menu. Ctrl+Shift+F is free in both browsers
+(checked against Firefox 157's built-in key table and Chrome's shortcut list); on a Mac,
+Cmd+Shift+F is taken, hence Control+Shift+F. A browser only applies a default shortcut when the
+extension is first installed: an install that already had the old Alt keys keeps them until it
+is removed and added again, or the keys are changed on the shortcuts page.
 
 Options (right-click the button → Options): in-browser model or Ollama, an English or
 multilingual model (the multilingual one, 118 MB, also matches Hebrew to English), whether every
@@ -93,8 +101,8 @@ sentences: indexing 4.5 s in Chrome (7.6 ms a sentence, 4 threads), painting a s
 
 ```sh
 npm test                  # unit tests for the scoring (Node)
-npm run test:e2e          # real Chrome, headless: 14 checks on test/fixtures/article.html
-npm run test:e2e:firefox  # real Firefox over WebDriver BiDi: 7 checks
+npm run test:e2e          # real Chrome, headless: 16 checks on test/fixtures/article.html
+npm run test:e2e:firefox  # real Firefox over WebDriver BiDi: 8 checks
 npm run lint              # web-ext lint on the Firefox build
 node test/bench.mjs https://en.wikipedia.org/wiki/Sourdough 60   # speed and matches on a real page
 ```

@@ -99,7 +99,16 @@ try {
     await page.screenshot({ path: join(artifacts, 'firefox-typed-query.png') });
   });
 
-  await check('it turns off again', async () => {
+  await check('the search shortcut, pressed again in the box, turns it off', async () => {
+    assert.equal(await boxFocused(page), true);
+    await page.evaluate(() => window.dispatchEvent(new Event('semhl-test-focus-box')));
+    await page.waitForFunction(() => !document.getElementById('semhl-host'), { timeout: 5_000 });
+    assert.equal(await page.evaluate(() => CSS.highlights.size), 0);
+  });
+
+  await check('it turns on and off again', async () => {
+    await toggle(page);
+    await page.waitForFunction(() => document.getElementById('semhl-host'), { timeout: 5_000 });
     await toggle(page);
     await page.waitForFunction(() => !document.getElementById('semhl-host'), { timeout: 5_000 });
     assert.equal(await page.evaluate(() => CSS.highlights.size), 0);

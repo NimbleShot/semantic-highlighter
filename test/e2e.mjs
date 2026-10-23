@@ -46,6 +46,29 @@ try {
   await page.setViewport({ width: 1280, height: 1600 });
   await page.goto(`${base}/article.html`);
 
+  // Puppeteer's key events go to the page, not to the browser's shortcut handling, so a shortcut
+  // is "pressed" by calling the handler the browser calls for it.
+  const pressSearchShortcut = async () => {
+    const worker = await backgroundWorker(browser, extension);
+    await worker.evaluate(async (url) => {
+      const [tab] = await chrome.tabs.query({ url });
+      await globalThis.semhlCommand('search-by-meaning', tab.id);
+    }, `${base}/article.html`);
+  };
+
+  await check('Chrome bound the search shortcut to Ctrl+Shift+F, and nothing uses Alt', async () => {
+    const worker = await backgroundWorker(browser, extension);
+    const { commands, title } = await worker.evaluate(async () => ({
+      commands: await chrome.commands.getAll(),
+      title: await chrome.action.getTitle({}),
+    }));
+    const keys = Object.fromEntries(commands.map((c) => [c.name, c.shortcut]));
+    console.log(`     ${JSON.stringify(keys)} · toolbar tooltip "${title}"`);
+    assert.equal(keys['search-by-meaning'], 'Ctrl+Shift+F');
+    assert.ok(Object.values(keys).every((k) => !/Alt/.test(k)), 'a shortcut uses Alt');
+    assert.match(title, /Ctrl\+Shift\+F/);
+  });
+
   let index;
   await check('the toolbar action turns it on and the page gets indexed', async () => {
     const started = Date.now();
@@ -115,13 +138,7 @@ try {
   await check('the search hotkey focuses the box, and a typed idea paints the page', async () => {
     await page.evaluate(() => document.getElementById('semhl-host').shadowRoot.activeElement?.blur());
     assert.equal(await boxFocused(page), false);
-    // Puppeteer's key events go to the page, not to the browser's shortcut handling, so the
-    // command is run through the same handler the shortcut calls.
-    const worker = await backgroundWorker(browser, extension);
-    await worker.evaluate(async (url) => {
-      const [tab] = await chrome.tabs.query({ url });
-      await globalThis.semhlCommand('search-by-meaning', tab.id);
-    }, `${base}/article.html`);
+    await pressSearchShortcut();
     await page.waitForFunction(() => document.getElementById('semhl-host').shadowRoot.activeElement, { timeout: 5_000 });
     assert.equal(await boxFocused(page), true);
 
@@ -149,7 +166,17 @@ try {
     assert.match(value, /^A sourdough starter is a living culture/);
   });
 
-  await check('the toolbar action turns it off again', async () => {
+  await check('the search shortcut, pressed again in the box, turns it off', async () => {
+    await pressSearchShortcut();
+    await page.waitForFunction(() => document.getElementById('semhl-host').shadowRoot.activeElement, { timeout: 5_000 });
+    await pressSearchShortcut();
+    await page.waitForFunction(() => !document.getElementById('semhl-host'), { timeout: 5_000 });
+    assert.deepEqual(await page.evaluate(() => [...CSS.highlights.keys()]), []);
+  });
+
+  await check('the toolbar action turns it on and off again', async () => {
+    await page.triggerExtensionAction(extension);
+    await page.waitForFunction(() => document.getElementById('semhl-host'), { timeout: 5_000 });
     await page.triggerExtensionAction(extension);
     await page.waitForFunction(() => !document.getElementById('semhl-host'), { timeout: 5_000 });
     assert.deepEqual(await page.evaluate(() => [...CSS.highlights.keys()]), []);
