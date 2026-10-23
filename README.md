@@ -57,6 +57,16 @@ npm run build          # → dist/chrome and dist/firefox
 
 The same two commands work in bash, PowerShell and cmd; Node 20 or newer.
 
+`npm ci` reports **3 high severity vulnerabilities**. All three are one advisory in `node-forge`
+([GHSA-86w9-cpqp-85rv], no patched version exists), reached only through `web-ext` → `adbkit`,
+`web-ext`'s code for running add-ons on Android, which this project never uses. `web-ext` is a
+development tool for linting and packaging; none of it is in the built extension, and
+`npm audit --omit=dev` finds nothing. Don't run `npm audit fix --force`: it "fixes" this by
+downgrading `web-ext` to a 2021 release. (`shell-quote`, the other `web-ext` advisory, is fixed by
+the override in `package.json`.)
+
+[GHSA-86w9-cpqp-85rv]: https://github.com/advisories/GHSA-86w9-cpqp-85rv
+
 - **Chrome / Edge / Brave:** `chrome://extensions` → Developer mode → *Load unpacked* →
   `dist/chrome`.
 - **Firefox (142+):** `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* →
