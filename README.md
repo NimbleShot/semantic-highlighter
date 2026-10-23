@@ -6,8 +6,9 @@ for unrelated ones. You can see where an article comes back to the same idea eve
 different words.
 
 - **Private by default.** A small embedding model ([all-MiniLM-L6-v2], 23 MB) runs inside the
-  browser through [transformers.js]. Only the model is downloaded, once, from Hugging Face; page
-  text never leaves the computer. An [Ollama] server can be used instead.
+  browser through [transformers.js], so by default all data is processed locally; only the model
+  is downloaded, once, from Hugging Face. An [Ollama] server can be used instead. See
+  [Privacy](#privacy).
 - **Leaves the page alone.** Colors are painted with the [CSS Custom Highlight API], so the
   page's DOM is never changed and turning it off restores the page exactly.
 - **Runs only where you turn it on.** It asks only for `activeTab`: nothing is injected until
@@ -159,17 +160,22 @@ Puppeteer's own browsers.
 
 ## Privacy
 
-Semantic Highlighter collects no data. It has no analytics, no accounts and no server of its own.
+**By default, all data is processed locally, in your browser.** Semantic Highlighter collects
+no data: it has no analytics, no accounts and no server of its own.
 
-- **Page text stays on your computer.** Sentences are read only on a tab where you turn the
-  extension on, embedded by the model inside the browser, and kept in memory for that tab until
-  you turn it off or close the tab. Nothing is written to disk or sent anywhere.
-- **The model is downloaded once** from Hugging Face (`huggingface.co`) and kept in the
-  browser's cache. That download is the only request the extension makes on its own; it carries
-  no page text.
-- **Ollama, if you choose it,** receives the page's sentences at the address you enter in the
-  options, normally a server on your own computer. The browser asks your permission first.
+- **Processed locally.** The extension reads a page only on a tab where you turn it on. Its
+  sentences, and the text you select or search for, are turned into embeddings by the model
+  running inside your browser, and kept in memory for that tab until you turn it off or close
+  the tab. The extension does not store them or send them anywhere.
+- **One download.** The model is downloaded once from Hugging Face (`huggingface.co`) and kept
+  in the browser's cache. That is the only request the extension makes on its own, and it
+  carries none of your data.
+- **Ollama, only if you choose it.** If you pick an Ollama server in the options instead of the
+  built-in model, the page's sentences and your queries are sent to the address you enter,
+  normally a server on your own computer. The browser asks your permission first.
 - **Settings** are stored in the browser's extension storage on your computer.
+- **The page you are on.** The search box is shown inside the web page, so, as with anything you
+  type into a page, that page's own scripts may be able to see what you type there.
 
 ## Known limits
 
