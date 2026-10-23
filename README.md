@@ -55,6 +55,8 @@ npm ci
 npm run build          # → dist/chrome and dist/firefox
 ```
 
+The same two commands work in bash, PowerShell and cmd; Node 20 or newer.
+
 - **Chrome / Edge / Brave:** `chrome://extensions` → Developer mode → *Load unpacked* →
   `dist/chrome`.
 - **Firefox (142+):** `about:debugging#/runtime/this-firefox` → *Load Temporary Add-on* →
@@ -115,8 +117,8 @@ pill and the highlights work under a strict Content-Security-Policy. Opt-in:
 checks that the multilingual model finds the Hebrew translation of an English sentence.
 
 The tests use the installed Google Chrome (`CHROME=` to override) and Firefox (`FIREFOX=`,
-default the snap's `/snap/bin/firefox`); Puppeteer does not download browsers here
-(`PUPPETEER_SKIP_DOWNLOAD=1 npm ci`).
+default the snap's `/snap/bin/firefox`); `.puppeteerrc.cjs` stops `npm ci` from downloading
+Puppeteer's own browsers.
 
 ## Privacy
 
