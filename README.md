@@ -93,13 +93,13 @@ Never install it.
    npx web-ext sign --channel=listed --source-dir dist/firefox \
      --amo-metadata store/amo-metadata.json \
      --upload-source-code web-ext-artifacts/semantic-highlighter-<version>-source.zip \
-     --api-key <issuer> --api-secret <secret>
+     --approval-timeout 0 --api-key <issuer> --api-secret <secret>
    ```
 
    For an existing add-on this submits the new version with its release and reviewer notes,
    updates the listing's summary and description from the same file, and attaches the source.
-   The version then waits for review; the command times out waiting for approval, which is
-   normal. Screenshots are uploaded by hand on the listing page. Without an API key: Developer
+   The version then waits for review (`--approval-timeout 0` returns without waiting for it).
+   Screenshots are uploaded by hand on the listing page. Without an API key: Developer
    Hub → the add-on → *Upload New Version*, the `-firefox.zip`, then the `-source.zip` and the
    notes from `store/amo-metadata.json`.
 4. **Chrome:** see `store/chrome-listing.md`.
